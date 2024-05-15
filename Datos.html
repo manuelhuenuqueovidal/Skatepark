@@ -1,0 +1,268 @@
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Datos</title>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+        crossorigin="anonymous"
+      />
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+      <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+      <link rel="stylesheet" href="assets/css/estilos.css" />
+    </head>
+    <body>
+      <h1>Skate Park</h1>
+
+      <div class="py-4">
+        <h2>Datos del perfil</h2>
+        <hr class="w-50" />
+
+        <form action="/datos" method="GET" id="datos">
+          <div class="form-group row w-50 m-auto">
+            <div class="form-group col-12 col-sm-6">
+              <label>Email</label>
+              <input  id="email"
+                class="form-control m-auto"
+                disabled
+                value="inicie sesión"
+              />
+            </div>
+            <div class="form-group col-12 col-sm-6">
+              <label>Nombre</label>
+              <input name="nombre" id="nombre" class="form-control m-auto" value="Tony Hawk" />
+            </div>
+            <div class="form-group col-12 col-sm-6">
+              <label>Password</label>
+              <input name="password" id="password"
+                type="password"
+                class="form-control m-auto"
+                value="12345678"
+              />
+            </div>
+            <div class="form-group col-12 col-sm-6">
+              <label>Repita la password</label>
+              <input name="password2" id="password2"
+                type="password"
+                class="form-control m-auto"
+                value="12345678"
+              />
+            </div>
+            <div class="form-group col-12 col-sm-6">
+              <label>Años de experiencia</label>
+              <input name="anos_experiencia" id="anos_experiencia" class="form-control m-auto" value="12" />
+            </div>
+            <div class="form-group col-12 col-sm-6">
+              <label>Especialidad</label>
+              <input name="especialidad" id="especialidad" class="form-control m-auto" value="Kickflip" />
+            </div>
+          </div>
+          <div class="mb-1">
+            <button id="editarSkater" class="btn btn-primary">Actualizar</button>
+          </div>
+          <div>
+            <button id="eliminarSkater" class="btn btn-danger">Eliminar cuenta</button>
+          </div>
+        </form>
+        <a href="http://localhost:3000/">Inicio</a>
+      </div>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </body>
+  </html>
+
+  <script>
+    //Imprime en tabla datos del perfil.
+    $(document).ready(function () {
+      //Obtener el token de la URL.
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+  
+      //Hacer una solicitud al servidor para obtener los datos del skater usando el token.
+      axios
+        .get("http://localhost:3000/skater", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(function (response) {
+          // Llenar los campos del formulario con los datos del skater
+          const skater = response.data;
+          $("#email").val(skater.email);
+          $("#nombre").val(skater.nombre);
+          $("#password").val(skater.password);
+          $("#anos_experiencia").val(skater.anos_experiencia);
+          $("#especialidad").val(skater.especialidad);
+  
+          //Agregar evento de clic al botón de "Actualizar".
+          $("#editarSkater").click(function () {
+            const id = skater.id; // Obtener el ID del skater
+            const nombre = $("#nombre").val();
+            const password = $("#password").val();
+            const anos_experiencia = $("#anos_experiencia").val();
+            const especialidad = $("#especialidad").val();
+  
+            //Realizar solicitud PUT al servidor para actualizar los datos del skater.
+            axios
+              .put(
+                `http://localhost:3000/editardatos/${id}`,
+                {
+                  nombre,
+                  password,
+                  anos_experiencia,
+                  especialidad,
+                }
+                
+              )
+              .then(function (response) {
+                //Manejar respuesta del servidor.
+                console.log("Datos actualizados:", response.data);
+                alert("Datos actualizados exitosamente.");
+                window.location.href = "http://localhost:3000" 
+              })
+              .catch(function (error) {
+                //Manejar errores.
+                console.error("Error al actualizar datos:", error);
+                alert(
+                  "Error al actualizar datos. Por favor, inténtalo de nuevo."
+                );
+              });
+          });
+  
+          //Agregar evento de clic al botón de "Eliminar cuenta".
+          $("#eliminarSkater").click(function () {
+            const confirmar = confirm(
+              "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer."
+            );
+  
+            if (confirmar) {
+              //Realizar solicitud DELETE al servidor para eliminar la cuenta del skater.
+              axios
+                .delete(`http://localhost:3000/eliminardatos?id=${skater.id}`)
+                .then(function (response) {
+                  //Manejar respuesta del servidor.
+                  console.log("Cuenta eliminada:", response.data);
+                  alert("Tu cuenta ha sido eliminada exitosamente.");
+                  //Redireccionar a la página de inicio de sesión u otra página deseada.
+                  window.location.href = "http://localhost:3000/";
+                })
+                .catch(function (error) {
+                  // Manejar errores
+                  console.error("Error al eliminar cuenta:", error);
+                  alert(
+                    "Error al eliminar cuenta. Por favor, inténtalo de nuevo."
+                  );
+                });
+            }
+          });
+        })
+        .catch(function (error) {
+          //Manejar errores.
+          console.error("Error al obtener los datos del skater:", error);
+          console.log(error.response.data);
+        });
+    });
+  </script>
+
+  <!-- <script>
+    $(document).ready(function () {
+        // Obtener el token de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+
+        // Hacer una solicitud al servidor para obtener los datos del skater usando el token
+        axios
+            .get("http://localhost:3000/skater", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            .then(function (response) {
+                // Llenar los campos del formulario con los datos del skater
+                const skater = response.data;
+                $("#email").val(skater.email);
+                $("#nombre").val(skater.nombre);
+                $("#password").val(skater.password);
+                $("#anos_experiencia").val(skater.anos_experiencia);
+                $("#especialidad").val(skater.especialidad);
+
+                // Agregar evento de clic al botón de "Actualizar"
+                $("#editarSkater").click(function () {
+                    // Obtener los valores de los campos del formulario
+                    var id = skater.id; // Obtener el ID del skater
+                    var nombre = $("#nombre").val();
+                    var anos_experiencia = $("#anos_experiencia").val();
+                    var especialidad = $("#especialidad").val();
+
+                    // Verificar si se están modificando las contraseñas
+                    var password = $("#password").val();
+                    var password2 = $("#password2").val();
+
+                    // if (password !== "" || password2 !== "") {
+                    //     // Al menos un campo de contraseña no está vacío, realizar la validación
+                    //     if (password !== password2) {
+                    //         alert("Las contraseñas no coinciden. Por favor, inténtalo de nuevo.");
+                    //         return false; // Evitar que se envíe el formulario
+                    //     }
+                    // }
+
+                    // Realizar solicitud PUT al servidor para actualizar los datos del skater
+                    axios
+                        .put(`http://localhost:3000/editardatos/${id}`, {
+                            nombre,
+                            password,
+                            anos_experiencia,
+                            especialidad,
+                        })
+                        .then(function (response) {
+                            // Manejar respuesta del servidor
+                            console.log("Datos actualizados:", response.data);
+                            alert("Datos actualizados exitosamente.");
+                            window.location.href = "http://localhost:3000";
+                        })
+                        .catch(function (error) {
+                            // Manejar errores
+                            console.error("Error al actualizar datos:", error);
+                            alert("Error al actualizar datos. Por favor, inténtalo de nuevo.");
+                        });
+                });
+
+                // Agregar evento de clic al botón de "Eliminar cuenta"
+                $("#eliminarSkater").click(function () {
+                    var confirmar = confirm(
+                        "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer."
+                    );
+
+                    if (confirmar) {
+                        // Realizar solicitud DELETE al servidor para eliminar la cuenta del skater
+                        axios
+                            .delete(`http://localhost:3000/eliminardatos?id=${skater.id}`)
+                            .then(function (response) {
+                                // Manejar respuesta del servidor
+                                console.log("Cuenta eliminada:", response.data);
+                                alert("Tu cuenta ha sido eliminada exitosamente.");
+                                // Redireccionar a la página de inicio de sesión u otra página deseada
+                                window.location.href = "http://localhost:3000/";
+                            })
+                            .catch(function (error) {
+                                // Manejar errores
+                                console.error("Error al eliminar cuenta:", error);
+                                alert("Error al eliminar cuenta. Por favor, inténtalo de nuevo.");
+                            });
+                    }
+                });
+            })
+            .catch(function (error) {
+                // Manejar errores
+                console.error("Error al obtener los datos del skater:", error);
+                console.log(error.response.data);
+            });
+    });
+</script> -->
+
+
+  
