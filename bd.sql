@@ -1,5 +1,5 @@
 -- Creación de Base de datos
-CREATE DATABASE skaterpark;
+CREATE DATABASE skatepark;
 
 
 -- Creación de la tabla 'skaters'
